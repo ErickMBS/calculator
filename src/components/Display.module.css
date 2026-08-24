@@ -3,24 +3,34 @@
   flex-direction: column;
   align-items: flex-end;
   justify-content: flex-end;
-  padding: 20px 24px;
-  min-height: 100px;
+  padding: 16px 20px;
+  min-height: 110px;
   gap: 4px;
 }
 
+.subtitle {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  color: #8e8e93;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .expression {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 400;
   color: #a5a5a5;
-  min-height: 1.5rem;
+  min-height: 1.4rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
+  direction: rtl;
+  text-align: left;
 }
 
 .value {
-  font-size: 3.5rem;
+  font-size: 2.75rem;
   font-weight: 300;
   color: #ffffff;
   overflow: hidden;
