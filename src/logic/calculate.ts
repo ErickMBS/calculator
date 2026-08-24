@@ -45,9 +45,12 @@ export function calculate(
   // Porcentagem
   if (buttonName === "%") {
     if (state.operation && state.next) {
-      const result = operate(state.total, state.next, state.operation);
+      // Ex: 100 - 10% → 10% de 100 = 10, resultado: 100 - 10 = 90
+      const percentage = Big(state.total || "0")
+        .times(Big(state.next))
+        .div(Big("100"));
       return {
-        total: Big(result).div(Big("100")).toString(),
+        total: operate(state.total, percentage.toString(), state.operation),
         next: null,
         operation: null,
       };
