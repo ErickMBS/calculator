@@ -1,40 +1,24 @@
 {
   "name": "calculator",
-  "version": "0.1.0",
-  "license": "MIT",
-  "homepage": "http://ahfarmer.github.io/calculator",
-  "devDependencies": {
-    "chai": "^4.2.0",
-    "gh-pages": "^2.0.1",
-    "prettier": "^1.17.1",
-    "react-scripts": "^3.0.1"
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
-    "big.js": "^5.2.2",
-    "github-fork-ribbon-css": "^0.2.1",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6"
+    "big.js": "^6.2.2",
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject",
-    "deploy": "gh-pages -d build"
-  },
-  "prettier": {
-    "trailingComma": "all"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "devDependencies": {
+    "@types/big.js": "^6.2.2",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.5.0"
   }
 }

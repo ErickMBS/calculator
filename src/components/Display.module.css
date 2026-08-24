@@ -1,0 +1,17 @@
+.display {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 20px 24px;
+  min-height: 100px;
+}
+
+.value {
+  font-size: 3.5rem;
+  font-weight: 300;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}

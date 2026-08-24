@@ -1,0 +1,42 @@
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  background-color: #333333;
+  color: #ffffff;
+  user-select: none;
+}
+
+.button:hover {
+  opacity: 0.8;
+}
+
+.button:active {
+  opacity: 0.6;
+}
+
+.orange {
+  background-color: #ff9500;
+  color: #ffffff;
+  font-size: 1.75rem;
+}
+
+.gray {
+  background-color: #a5a5a5;
+  color: #000000;
+}
+
+.wide {
+  width: 152px;
+  border-radius: 36px;
+  padding-left: 24px;
+  justify-content: flex-start;
+}
