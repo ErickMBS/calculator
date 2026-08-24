@@ -1,40 +1,218 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Display } from "./Display";
 import { ButtonPanel } from "./ButtonPanel";
-import { calculate, CalculatorState } from "@/src/logic/calculate";
+import { Toolbar } from "./Toolbar";
+import { HelpModal } from "./HelpModal";
+import { HistoryPanel, HistoryEntry } from "./HistoryPanel";
+import { SettingsPanel } from "./SettingsPanel";
+import {
+  calculate,
+  buildDisplayExpression,
+  CalculatorMode,
+  CalculatorState,
+  initialState,
+} from "@/src/logic/calculate";
+import {
+  TvmValues,
+  TvmKey,
+  emptyTvm,
+  computeTvm,
+  formatTvm,
+} from "@/src/logic/financial";
 import styles from "./Calculator.module.css";
 
-const initialState: CalculatorState = {
-  total: null,
-  next: null,
-  operation: null,
-};
+type Panel = "help" | "history" | "settings" | null;
+
+const HISTORY_KEY = "calc-history";
+const SETTINGS_KEY = "calc-show-full";
+
+function fullExpression(state: CalculatorState): string {
+  if (!state.expression) return state.current;
+  if (state.overwrite) return state.expression;
+  return state.expression + state.current;
+}
 
 export function Calculator() {
   const [state, setState] = useState<CalculatorState>(initialState);
+  const [mode, setMode] = useState<CalculatorMode>("padrão");
+  const [panel, setPanel] = useState<Panel>(null);
+  const [showFullExpression, setShowFullExpression] = useState(true);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [tvm, setTvm] = useState<TvmValues>(emptyTvm);
+  const [computeArmed, setComputeArmed] = useState(false);
 
-  function handleClick(buttonName: string) {
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(HISTORY_KEY);
+      if (saved) setHistory(JSON.parse(saved));
+      const setting = localStorage.getItem(SETTINGS_KEY);
+      if (setting !== null) setShowFullExpression(setting === "true");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 50)));
+  }, [history]);
+
+  useEffect(() => {
+    localStorage.setItem(SETTINGS_KEY, String(showFullExpression));
+  }, [showFullExpression]);
+
+  function pushHistory(expression: string, result: string) {
+    if (!expression || result === "Erro") return;
+    setHistory((prev) =>
+      [{ id: `${Date.now()}`, expression, result }, ...prev].slice(0, 50)
+    );
+  }
+
+  function handleModeChange(next: CalculatorMode) {
+    setMode(next);
+    setState(initialState);
+    setComputeArmed(false);
+    if (next !== "financeira") setTvm(emptyTvm);
+  }
+
+  function handleFinancial(buttonName: string) {
+    const tvmMap: Record<string, TvmKey> = {
+      N: "n",
+      "I/Y": "iy",
+      PV: "pv",
+      PMT: "pmt",
+      FV: "fv",
+    };
+
+    if (buttonName === "CPT") {
+      setComputeArmed((v) => !v);
+      return;
+    }
+
+    const key = tvmMap[buttonName];
+    if (key) {
+      if (computeArmed) {
+        try {
+          const value = computeTvm(tvm, key);
+          const formatted = formatTvm(value);
+          setTvm((prev) => ({ ...prev, [key]: value }));
+          setState({
+            ...initialState,
+            current: formatted,
+            lastOp: `CPT ${buttonName}`,
+          });
+          pushHistory(`CPT ${buttonName}`, formatted);
+        } catch {
+          setState({
+            ...initialState,
+            current: "Erro",
+            lastOp: `CPT ${buttonName}`,
+          });
+        }
+        setComputeArmed(false);
+        return;
+      }
+
+      const num = parseFloat(state.current);
+      if (Number.isNaN(num)) return;
+      setTvm((prev) => ({ ...prev, [key]: num }));
+      setState({
+        ...initialState,
+        current: state.current,
+        overwrite: true,
+        lastOp: `${buttonName} = ${state.current}`,
+      });
+      return;
+    }
+
+    const before = fullExpression(state);
     const newState = calculate(state, buttonName);
+    if (buttonName === "=" && newState.current) {
+      pushHistory(before, newState.current);
+    }
     setState((prev) => ({ ...prev, ...newState }));
   }
 
-  const displayValue = state.next || state.total || "0";
+  function handleClick(buttonName: string) {
+    if (mode === "financeira") {
+      handleFinancial(buttonName);
+      return;
+    }
 
-  // Monta a expressão visível (ex: "12 + 5")
-  function buildExpression(): string {
-    const parts: string[] = [];
-    if (state.total) parts.push(state.total);
-    if (state.operation) parts.push(state.operation);
-    if (state.total && state.operation && state.next) parts.push(state.next);
-    return parts.join(" ");
+    const before = fullExpression(state);
+    const newState = calculate(state, buttonName);
+    if (buttonName === "=" && newState.current) {
+      pushHistory(before, newState.current);
+    }
+    setState((prev) => ({ ...prev, ...newState }));
   }
 
+  function handleResume(entry: HistoryEntry) {
+    setState({
+      ...initialState,
+      current: entry.result,
+      lastOp: entry.expression + " =",
+    });
+    setPanel(null);
+  }
+
+  const expression = buildDisplayExpression(state, showFullExpression);
+
+  const tvmSummary =
+    mode === "financeira"
+      ? [
+          tvm.n !== null ? `N:${tvm.n}` : null,
+          tvm.iy !== null ? `I/Y:${tvm.iy}` : null,
+          tvm.pv !== null ? `PV:${tvm.pv}` : null,
+          tvm.pmt !== null ? `PMT:${tvm.pmt}` : null,
+          tvm.fv !== null ? `FV:${tvm.fv}` : null,
+          computeArmed ? "CPT…" : null,
+        ]
+          .filter(Boolean)
+          .join("  ")
+      : undefined;
+
   return (
-    <div className={styles.calculator}>
-      <Display expression={buildExpression()} value={displayValue} />
-      <ButtonPanel onClick={handleClick} />
+    <div
+      className={`${styles.calculator} ${mode !== "padrão" ? styles.wide : ""}`}
+    >
+      <Toolbar
+        mode={mode}
+        onModeChange={handleModeChange}
+        onOpenSettings={() => setPanel("settings")}
+        onOpenHelp={() => setPanel("help")}
+        onOpenHistory={() => setPanel("history")}
+      />
+      <Display
+        expression={expression}
+        value={state.current}
+        subtitle={tvmSummary || undefined}
+      />
+      <ButtonPanel
+        mode={mode}
+        onClick={handleClick}
+        computeMode={computeArmed}
+      />
+
+      {panel === "help" && (
+        <HelpModal mode={mode} onClose={() => setPanel(null)} />
+      )}
+      {panel === "history" && (
+        <HistoryPanel
+          history={history}
+          onResume={handleResume}
+          onClear={() => setHistory([])}
+          onClose={() => setPanel(null)}
+        />
+      )}
+      {panel === "settings" && (
+        <SettingsPanel
+          showFullExpression={showFullExpression}
+          onChangeShowFull={setShowFullExpression}
+          onClose={() => setPanel(null)}
+        />
+      )}
     </div>
   );
 }

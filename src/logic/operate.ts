@@ -1,6 +1,6 @@
-import Big from "big.js";
+export type Operation = "+" | "-" | "x" | "÷" | "^";
 
-export type Operation = "+" | "-" | "x" | "÷";
+import Big from "big.js";
 
 export function operate(
   numberOne: string | null,
@@ -20,10 +20,10 @@ export function operate(
     case "x":
       return one.times(two).toString();
     case "÷":
-      if (two.eq(Big("0"))) {
-        return "Erro";
-      }
+      if (two.eq(Big("0"))) return "Erro";
       return one.div(two).toString();
+    case "^":
+      return Big(Math.pow(one.toNumber(), two.toNumber())).toString();
     default:
       throw new Error(`Operação desconhecida: '${operation}'`);
   }
