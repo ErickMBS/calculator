@@ -7,11 +7,16 @@ interface DisplayProps {
 }
 
 export function Display({ expression, value, subtitle }: DisplayProps) {
+  const decimalPart = value.split(".")[1];
+  const fractionDigits = decimalPart.length;
+
   return (
     <div className={styles.display}>
       {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
       <div className={styles.expression}>{expression}</div>
-      <div className={styles.value}>{value}</div>
+      <div className={styles.value} data-fraction-digits={fractionDigits}>
+        {value}
+      </div>
     </div>
   );
 }

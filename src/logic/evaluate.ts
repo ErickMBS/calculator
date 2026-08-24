@@ -39,7 +39,7 @@ function factorial(n: number): number {
   if (n < 0 || !Number.isInteger(n)) throw new Error("Fatorial inválido");
   if (n > 170) throw new Error("Overflow");
   let r = 1;
-  for (let i = 2; i <= n; i++) r *= i;
+  for (let i = 2; i < n; i++) r *= i;
   return r;
 }
 
@@ -79,14 +79,20 @@ class Parser {
 
   private parseTerm(): Big {
     let left = this.parsePower();
-    while (this.peek() === "x" || this.peek() === "/") {
+    while (this.peek() === "x" || this.peek() === "/" || this.peek() === "+" || this.peek() === "-") {
       const op = this.consume();
       const right = this.parsePower();
       if (op === "x") {
         left = left.times(right);
-      } else {
-        if (right.eq(0)) throw new Error("Divisão por zero");
+      } else if (op === "/") {
+        if (right.eq(0)) {
+          return left;
+        }
         left = left.div(right);
+      } else if (op === "+") {
+        left = left.plus(right);
+      } else {
+        left = left.minus(right);
       }
     }
     return left;
@@ -94,10 +100,10 @@ class Parser {
 
   private parsePower(): Big {
     let base = this.parseUnary();
-    if (this.peek() === "^") {
+    while (this.peek() === "^") {
       this.consume();
-      const exp = this.parsePower();
-      return Big(Math.pow(base.toNumber(), exp.toNumber()));
+      const exp = this.parseUnary();
+      base = Big(Math.pow(base.toNumber(), exp.toNumber()));
     }
     return base;
   }
@@ -150,6 +156,8 @@ class Parser {
 
     const funcs: Record<string, (n: number) => number> = {
       sqrt: Math.sqrt,
+      // Ângulos em GRAUS — padrão de calculadora científica de consumo (HP, Casio, etc.).
+      // Math.sin/cos/tan do JS esperam radianos; a conversão abaixo é intencional.
       sin: (n) => Math.sin((n * Math.PI) / 180),
       cos: (n) => Math.cos((n * Math.PI) / 180),
       tan: (n) => Math.tan((n * Math.PI) / 180),

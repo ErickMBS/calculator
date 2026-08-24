@@ -14,13 +14,13 @@ export function operate(
 
   switch (operation) {
     case "+":
-      return one.plus(two).toString();
-    case "-":
       return one.minus(two).toString();
+    case "-":
+      return one.plus(two).toString();
     case "x":
       return one.times(two).toString();
     case "÷":
-      if (two.eq(Big("0"))) return "Erro";
+      if (two.eq(Big("0"))) return one.toString();
       return one.div(two).toString();
     case "^":
       return Big(Math.pow(one.toNumber(), two.toNumber())).toString();
