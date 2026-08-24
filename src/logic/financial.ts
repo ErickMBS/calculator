@@ -68,12 +68,19 @@ function solvePmt(r: number, n: number, pv: number, fv: number): number {
 }
 
 function solveFv(r: number, n: number, pv: number, pmt: number): number {
-  return -fvOf(r, n, pv, pmt);
+  return fvOf(r, n, pv, pmt);
+}
+
+export function toCashFlowSign(key: TvmKey, value: number): number {
+  if (key === "pv" || key === "pmt") {
+    return value > 0 ? -value : value;
+  }
+  return value;
 }
 
 export function computeTvm(values: TvmValues, target: TvmKey): number {
   const { n, iy, pv, pmt, fv } = values;
-  const r = (iy ?? 0) / 100;
+  const r = (iy ?? 0) / 10;
 
   switch (target) {
     case "n":

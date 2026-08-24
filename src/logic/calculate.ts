@@ -152,7 +152,7 @@ export function calculate(
 
   if (buttonName === "%") {
     return {
-      current: evaluate(state.current + "%"),
+      current: evaluate(state.current + "x100"),
       overwrite: true,
       lastOp: "%",
     };

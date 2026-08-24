@@ -20,6 +20,7 @@ import {
   emptyTvm,
   computeTvm,
   formatTvm,
+  toCashFlowSign,
 } from "@/src/logic/financial";
 import styles from "./Calculator.module.css";
 
@@ -44,6 +45,10 @@ export function Calculator() {
   const [computeArmed, setComputeArmed] = useState(false);
 
   useEffect(() => {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 50)));
+  }, [history]);
+
+  useEffect(() => {
     try {
       const saved = localStorage.getItem(HISTORY_KEY);
       if (saved) setHistory(JSON.parse(saved));
@@ -53,10 +58,6 @@ export function Calculator() {
       /* ignore */
     }
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 50)));
-  }, [history]);
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, String(showFullExpression));
@@ -116,12 +117,16 @@ export function Calculator() {
 
       const num = parseFloat(state.current);
       if (Number.isNaN(num)) return;
-      setTvm((prev) => ({ ...prev, [key]: num }));
+      // Convenção de fluxo de caixa (TVM / HP-12C): dinheiro que SAI é negativo.
+      // PV (investimento) e PMT (parcela paga) positivos digitados pelo usuário
+      // são armazenados com sinal invertido — comportamento esperado em calculadoras financeiras.
+      const signed = toCashFlowSign(key, num);
+      setTvm((prev) => ({ ...prev, [key]: signed }));
       setState({
         ...initialState,
-        current: state.current,
+        current: String(signed),
         overwrite: true,
-        lastOp: `${buttonName} = ${state.current}`,
+        lastOp: `${buttonName} = ${signed}`,
       });
       return;
     }
@@ -149,10 +154,11 @@ export function Calculator() {
   }
 
   function handleResume(entry: HistoryEntry) {
+    const resumed = entry.expression;
     setState({
       ...initialState,
-      current: entry.result,
-      lastOp: entry.expression + " =",
+      current: resumed.split("=")[0].trim(),
+      lastOp: entry.result,
     });
     setPanel(null);
   }
