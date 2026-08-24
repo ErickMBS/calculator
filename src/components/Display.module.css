@@ -1,9 +1,22 @@
 .display {
   display: flex;
+  flex-direction: column;
   align-items: flex-end;
   justify-content: flex-end;
   padding: 20px 24px;
   min-height: 100px;
+  gap: 4px;
+}
+
+.expression {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: #a5a5a5;
+  min-height: 1.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .value {

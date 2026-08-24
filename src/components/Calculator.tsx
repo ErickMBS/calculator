@@ -22,9 +22,18 @@ export function Calculator() {
 
   const displayValue = state.next || state.total || "0";
 
+  // Monta a expressão visível (ex: "12 + 5")
+  function buildExpression(): string {
+    const parts: string[] = [];
+    if (state.total) parts.push(state.total);
+    if (state.operation) parts.push(state.operation);
+    if (state.total && state.operation && state.next) parts.push(state.next);
+    return parts.join(" ");
+  }
+
   return (
     <div className={styles.calculator}>
-      <Display value={displayValue} />
+      <Display expression={buildExpression()} value={displayValue} />
       <ButtonPanel onClick={handleClick} />
     </div>
   );
